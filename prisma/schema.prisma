@@ -7,14 +7,94 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+}
+
 model User {
-  id               String   @id @default(cuid())
-  email            String   @unique
-  password         String
-  resetToken       String?
-  resetTokenExpiry DateTime?
-  refreshToken     String?
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  password           String?
+  setupPasswordToken String?   @unique
+  resetToken         String?
+  resetTokenExpiry   DateTime?
+  refreshToken       String?
   refreshTokenExpiry DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  projectMemberships ProjectMember[]
+  sentInvitations    Invitation[]    @relation("Inviter")
+  invitations        Invitation[]    @relation("InvitedUser")
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members     ProjectMember[]
+  invitations Invitation[]
+  envGroups   EnvGroup[]
+}
+
+model ProjectMember {
+  id        String   @id @default(cuid())
+  role      Role     @default(VIEWER)
+  userId    String
+  projectId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  project Project @relation(fields: [projectId], references: [id])
+
+  @@unique([userId, projectId])
+}
+
+model Invitation {
+  id            String           @id @default(cuid())
+  email         String
+  role          Role             @default(EDITOR)
+  token         String           @unique
+  status        InvitationStatus @default(PENDING)
+  projectId     String
+  invitedById   String
+  invitedUserId String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  project      Project @relation(fields: [projectId], references: [id])
+  invitedBy    User    @relation("Inviter", fields: [invitedById], references: [id])
+  invitedUser  User?   @relation("InvitedUser", fields: [invitedUserId], references: [id])
+}
+
+model EnvGroup {
+  id        String   @id @default(cuid())
+  name      String
+  projectId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   Project       @relation(fields: [projectId], references: [id])
+  variables EnvVariable[]
+}
+
+model EnvVariable {
+  id         String   @id @default(cuid())
+  key        String
+  value      String
+  envGroupId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  envGroup EnvGroup @relation(fields: [envGroupId], references: [id])
 }

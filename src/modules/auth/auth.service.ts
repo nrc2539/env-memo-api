@@ -13,6 +13,7 @@ import { LoginDto } from './dto/login.dto.js';
 import { ForgotPasswordDto } from './dto/forgot-password.dto.js';
 import { ResetPasswordDto } from './dto/reset-password.dto.js';
 import { RefreshDto } from './dto/refresh.dto.js';
+import { SetupPasswordDto } from './dto/setup-password.dto.js';
 
 @Injectable()
 export class AuthService {
@@ -47,7 +48,7 @@ export class AuthService {
       where: { email: dto.email },
     });
 
-    if (!user) {
+    if (!user || !user.password) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -130,6 +131,44 @@ export class AuthService {
     });
 
     return { message: 'Password has been reset successfully' };
+  }
+
+  async setupPassword(dto: SetupPasswordDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { setupPasswordToken: dto.token },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Invalid or expired setup token');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword, setupPasswordToken: null },
+    });
+
+    const invitation = await this.prisma.invitation.findFirst({
+      where: { invitedUserId: user.id, status: 'PENDING' },
+    });
+
+    if (invitation) {
+      await this.prisma.projectMember.create({
+        data: {
+          userId: user.id,
+          projectId: invitation.projectId,
+          role: invitation.role,
+        },
+      });
+
+      await this.prisma.invitation.update({
+        where: { id: invitation.id },
+        data: { status: 'ACCEPTED' },
+      });
+    }
+
+    return { message: 'Password set successfully' };
   }
 
   private async generateTokens(userId: string, email: string) {
