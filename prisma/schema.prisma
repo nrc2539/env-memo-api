@@ -7,10 +7,17 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
 model User {
   id               String   @id @default(cuid())
   email            String   @unique
   password         String
+  role             Role     @default(VIEWER)
   resetToken       String?
   resetTokenExpiry DateTime?
   refreshToken     String?
