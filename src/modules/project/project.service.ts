@@ -12,7 +12,7 @@ import {
   getPagination,
   formatPaginatedResponse,
 } from '../../../utils/pagination/pagination.util.js';
-import { PaginationDto } from '../../../utils/pagination/dto/pagiantion.dto.js';
+import { PaginationDto } from '../../../utils/pagination/dto/pagination.dto.js';
 
 @Injectable()
 export class ProjectService {
@@ -36,10 +36,7 @@ export class ProjectService {
     const where = { userId };
     const total = await this.prisma.projectMember.count({ where });
 
-    const { skip, take } = getPagination(
-      paginationDto.page,
-      paginationDto.limitPerPage,
-    );
+    const { skip, take } = getPagination(paginationDto);
     const memberships = await this.prisma.projectMember.findMany({
       where,
       include: { project: true },
@@ -109,10 +106,7 @@ export class ProjectService {
     const where = { projectId };
     const total = await this.prisma.projectMember.count({ where });
 
-    const { skip, take } = getPagination(
-      paginationDto.page,
-      paginationDto.limitPerPage,
-    );
+    const { skip, take } = getPagination(paginationDto);
     const data = await this.prisma.projectMember.findMany({
       where,
       include: { user: { select: { id: true, email: true } } },
@@ -220,10 +214,7 @@ export class ProjectService {
     const where = { projectId };
     const total = await this.prisma.invitation.count({ where });
 
-    const { skip, take } = getPagination(
-      paginationDto.page,
-      paginationDto.limitPerPage,
-    );
+    const { skip, take } = getPagination(paginationDto);
     const data = await this.prisma.invitation.findMany({
       where,
       include: {

@@ -8,7 +8,7 @@ import {
   getPagination,
   formatPaginatedResponse,
 } from '../../../utils/pagination/pagination.util.js';
-import { PaginationDto } from '../../../utils/pagination/dto/pagiantion.dto.js';
+import { PaginationDto } from '../../../utils/pagination/dto/pagination.dto.js';
 
 @Injectable()
 export class EnvService {
@@ -43,10 +43,7 @@ export class EnvService {
     const where = { projectId };
     const total = await this.prisma.envGroup.count({ where });
 
-    const { skip, take } = getPagination(
-      paginationDto.page,
-      paginationDto.limitPerPage,
-    );
+    const { skip, take } = getPagination(paginationDto);
     const data = await this.prisma.envGroup.findMany({
       where,
       include: { variables: true },

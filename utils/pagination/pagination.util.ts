@@ -1,8 +1,14 @@
-import { PaginationDto } from './dto/pagiantion.dto.js';
+import { PaginationDto } from './dto/pagination.dto.js';
 import type { PaginatedResult } from './pagination.interface.js';
 
-export function getPagination(page: number = 1, limit: number = 10) {
-  const take = limit > 0 ? limit : 10;
+export function getPagination(query: PaginationDto) {
+  const { page = 1, limitPerPage = 10, all = false } = query;
+
+  if (all) {
+    return { skip: undefined, take: undefined };
+  }
+
+  const take = limitPerPage > 0 ? limitPerPage : 10;
   const skip = (page - 1) * take;
 
   return {
