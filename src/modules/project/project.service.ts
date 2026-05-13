@@ -13,7 +13,7 @@ import { randomBytes } from 'node:crypto';
 export class ProjectService {
   constructor(private prisma: PrismaService) {}
 
-  async create(userId: string, dto: CreateProjectDto) {
+  async create(userId: number, dto: CreateProjectDto) {
     const project = await this.prisma.project.create({
       data: {
         name: dto.name,
@@ -27,7 +27,7 @@ export class ProjectService {
     return project;
   }
 
-  async findAll(userId: string) {
+  async findAll(userId: number) {
     const memberships = await this.prisma.projectMember.findMany({
       where: { userId },
       include: { project: true },
@@ -36,7 +36,7 @@ export class ProjectService {
     return memberships.map((m) => m.project);
   }
 
-  async findOne(projectId: string) {
+  async findOne(projectId: number) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
       include: {
@@ -53,7 +53,7 @@ export class ProjectService {
     return project;
   }
 
-  async update(projectId: string, dto: UpdateProjectDto) {
+  async update(projectId: number, dto: UpdateProjectDto) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
     });
@@ -68,7 +68,7 @@ export class ProjectService {
     });
   }
 
-  async remove(projectId: string) {
+  async remove(projectId: number) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
     });
@@ -82,7 +82,7 @@ export class ProjectService {
     return { message: 'Project deleted successfully' };
   }
 
-  async getMembers(projectId: string) {
+  async getMembers(projectId: number) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
     });
@@ -97,7 +97,7 @@ export class ProjectService {
     });
   }
 
-  async removeMember(projectId: string, memberUserId: string) {
+  async removeMember(projectId: number, memberUserId: number) {
     const member = await this.prisma.projectMember.findUnique({
       where: {
         userId_projectId: { userId: memberUserId, projectId },
@@ -119,7 +119,7 @@ export class ProjectService {
     return { message: 'Member removed successfully' };
   }
 
-  async invite(projectId: string, invitedById: string, dto: InviteMemberDto) {
+  async invite(projectId: number, invitedById: number, dto: InviteMemberDto) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
     });
@@ -182,7 +182,7 @@ export class ProjectService {
     return { message: 'Invitation sent successfully' };
   }
 
-  async getInvitations(projectId: string) {
+  async getInvitations(projectId: number) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
     });

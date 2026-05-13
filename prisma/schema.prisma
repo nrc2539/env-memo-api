@@ -20,7 +20,7 @@ enum InvitationStatus {
 }
 
 model User {
-  id                 String    @id @default(cuid())
+  id                 Int    @id @default(autoincrement())
   email              String    @unique
   password           String?
   setupPasswordToken String?   @unique
@@ -37,7 +37,7 @@ model User {
 }
 
 model Project {
-  id          String   @id @default(cuid())
+  id          Int   @id @default(autoincrement())
   name        String
   description String?
   createdAt   DateTime @default(now())
@@ -51,8 +51,8 @@ model Project {
 model ProjectMember {
   id        String   @id @default(cuid())
   role      Role     @default(VIEWER)
-  userId    String
-  projectId String
+  userId    Int
+  projectId Int
   createdAt DateTime @default(now())
 
   user    User    @relation(fields: [userId], references: [id])
@@ -62,14 +62,14 @@ model ProjectMember {
 }
 
 model Invitation {
-  id            String           @id @default(cuid())
+  id            Int           @id @default(autoincrement())
   email         String
   role          Role             @default(EDITOR)
   token         String           @unique
   status        InvitationStatus @default(PENDING)
-  projectId     String
-  invitedById   String
-  invitedUserId String?
+  projectId     Int
+  invitedById   Int
+  invitedUserId Int?
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 
@@ -81,7 +81,7 @@ model Invitation {
 model EnvGroup {
   id        String   @id @default(cuid())
   name      String
-  projectId String
+  projectId Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

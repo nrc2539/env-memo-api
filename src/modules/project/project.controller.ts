@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ProjectService } from './project.service.js';
 import { CreateProjectDto } from './dto/create-project.dto.js';
@@ -24,47 +25,47 @@ export class ProjectController {
   constructor(private projectService: ProjectService) {}
 
   @Post()
-  create(@CurrentUser() user: { id: string }, @Body() dto: CreateProjectDto) {
+  create(@CurrentUser() user: { id: number }, @Body() dto: CreateProjectDto) {
     return this.projectService.create(user.id, dto);
   }
 
   @Get()
-  findAll(@CurrentUser() user: { id: string }) {
+  findAll(@CurrentUser() user: { id: number }) {
     return this.projectService.findAll(user.id);
   }
 
   @UseGuards(ProjectRoleGuard)
   @RequireProjectRole(RoleEnum.VIEWER, RoleEnum.EDITOR, RoleEnum.OWNER)
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.projectService.findOne(id);
   }
 
   @UseGuards(ProjectRoleGuard)
   @RequireProjectRole(RoleEnum.OWNER)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateProjectDto) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProjectDto) {
     return this.projectService.update(id, dto);
   }
 
   @UseGuards(ProjectRoleGuard)
   @RequireProjectRole(RoleEnum.OWNER)
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.projectService.remove(id);
   }
 
   @UseGuards(ProjectRoleGuard)
   @RequireProjectRole(RoleEnum.VIEWER, RoleEnum.EDITOR, RoleEnum.OWNER)
   @Get(':id/members')
-  getMembers(@Param('id') id: string) {
+  getMembers(@Param('id', ParseIntPipe) id: number) {
     return this.projectService.getMembers(id);
   }
 
   @UseGuards(ProjectRoleGuard)
   @RequireProjectRole(RoleEnum.OWNER)
   @Delete(':id/members/:userId')
-  removeMember(@Param('id') id: string, @Param('userId') userId: string) {
+  removeMember(@Param('id', ParseIntPipe) id: number, @Param('userId', ParseIntPipe) userId: number) {
     return this.projectService.removeMember(id, userId);
   }
 
@@ -72,8 +73,8 @@ export class ProjectController {
   @RequireProjectRole(RoleEnum.OWNER)
   @Post(':id/invitations')
   invite(
-    @Param('id') id: string,
-    @CurrentUser() user: { id: string },
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: { id: number },
     @Body() dto: InviteMemberDto,
   ) {
     return this.projectService.invite(id, user.id, dto);
@@ -82,7 +83,7 @@ export class ProjectController {
   @UseGuards(ProjectRoleGuard)
   @RequireProjectRole(RoleEnum.OWNER)
   @Get(':id/invitations')
-  getInvitations(@Param('id') id: string) {
+  getInvitations(@Param('id', ParseIntPipe) id: number) {
     return this.projectService.getInvitations(id);
   }
 }

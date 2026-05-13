@@ -28,16 +28,18 @@ export class ProjectRoleGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<Request>();
-    const user = request.user as { id: string } | undefined;
+    const user = request.user as { id: number } | undefined;
     if (!user) {
       throw new ForbiddenException('Not authenticated');
     }
 
     const params = request.params as Record<string, string>;
-    const projectId = params.projectId ?? params.id;
-    if (!projectId) {
+    const projectIdParam = params.projectId ?? params.id;
+    if (!projectIdParam) {
       throw new ForbiddenException('Project ID not found');
     }
+
+    const projectId = +projectIdParam;
 
     const member = await this.prisma.projectMember.findUnique({
       where: {

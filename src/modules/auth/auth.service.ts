@@ -72,7 +72,7 @@ export class AuthService {
     }
 
     const user = await this.prisma.user.findUnique({
-      where: { id: payload.sub },
+      where: { id: +payload.sub },
     });
 
     if (
@@ -171,13 +171,14 @@ export class AuthService {
     return { message: 'Password set successfully' };
   }
 
-  private async generateTokens(userId: string, email: string) {
+  private async generateTokens(userId: number, email: string) {
+    const sub = userId.toString();
     const accessToken = this.jwtService.sign(
-      { sub: userId, email },
+      { sub, email },
       { expiresIn: '15m' },
     );
     const refreshToken = this.jwtService.sign(
-      { sub: userId, email, type: 'refresh' },
+      { sub, email, type: 'refresh' },
       { expiresIn: '7d' },
     );
 
@@ -186,7 +187,7 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  private async updateRefreshToken(userId: string, refreshToken: string) {
+  private async updateRefreshToken(userId: number, refreshToken: string) {
     const refreshTokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     await this.prisma.user.update({

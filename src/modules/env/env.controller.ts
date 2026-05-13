@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { EnvService } from './env.service.js';
 import { CreateEnvGroupDto } from './dto/create-env-group.dto.js';
@@ -27,7 +28,7 @@ export class EnvController {
   @RequireProjectRole(RoleEnum.OWNER)
   @Post('projects/:projectId/env-groups')
   createGroup(
-    @Param('projectId') projectId: string,
+    @Param('projectId', ParseIntPipe) projectId: number,
     @Body() dto: CreateEnvGroupDto,
   ) {
     return this.envService.createGroup(projectId, dto);
@@ -36,7 +37,7 @@ export class EnvController {
   @UseGuards(ProjectRoleGuard)
   @RequireProjectRole(RoleEnum.VIEWER, RoleEnum.EDITOR, RoleEnum.OWNER)
   @Get('projects/:projectId/env-groups')
-  findGroups(@Param('projectId') projectId: string) {
+  findGroups(@Param('projectId', ParseIntPipe) projectId: number) {
     return this.envService.findGroups(projectId);
   }
 

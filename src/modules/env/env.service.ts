@@ -9,7 +9,7 @@ import { UpdateEnvVariableDto } from './dto/update-env-variable.dto.js';
 export class EnvService {
   constructor(private prisma: PrismaService) {}
 
-  async createGroup(projectId: string, dto: CreateEnvGroupDto) {
+  async createGroup(projectId: number, dto: CreateEnvGroupDto) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
     });
@@ -26,7 +26,7 @@ export class EnvService {
     });
   }
 
-  async findGroups(projectId: string) {
+  async findGroups(projectId: number) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
     });
