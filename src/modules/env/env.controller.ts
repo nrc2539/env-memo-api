@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
   ParseIntPipe,
 } from '@nestjs/common';
@@ -18,6 +19,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { RequireProjectRole } from '../project/decorators/require-project-role.decorator.js';
 import { ProjectRoleGuard } from '../project/guards/project-role.guard.js';
 import { RoleEnum } from '../../../utils/enums/role.enum.js';
+import { PaginationDto } from '../../../utils/pagination/dto/pagiantion.dto.js';
 
 @UseGuards(JwtAuthGuard)
 @Controller()
@@ -37,8 +39,11 @@ export class EnvController {
   @UseGuards(ProjectRoleGuard)
   @RequireProjectRole(RoleEnum.VIEWER, RoleEnum.EDITOR, RoleEnum.OWNER)
   @Get('projects/:projectId/env-groups')
-  findGroups(@Param('projectId', ParseIntPipe) projectId: number) {
-    return this.envService.findGroups(projectId);
+  findGroups(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Query() paginationDto: PaginationDto,
+  ) {
+    return this.envService.findGroups(projectId, paginationDto);
   }
 
   @UseGuards(ProjectRoleGuard)

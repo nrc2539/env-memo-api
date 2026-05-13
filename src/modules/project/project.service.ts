@@ -8,6 +8,11 @@ import { CreateProjectDto } from './dto/create-project.dto.js';
 import { UpdateProjectDto } from './dto/update-project.dto.js';
 import { InviteMemberDto } from './dto/invite-member.dto.js';
 import { randomBytes } from 'node:crypto';
+import {
+  getPagination,
+  formatPaginatedResponse,
+} from '../../../utils/pagination/pagination.util.js';
+import { PaginationDto } from '../../../utils/pagination/dto/pagiantion.dto.js';
 
 @Injectable()
 export class ProjectService {
@@ -27,13 +32,23 @@ export class ProjectService {
     return project;
   }
 
-  async findAll(userId: number) {
+  async findAll(userId: number, paginationDto: PaginationDto) {
+    const where = { userId };
+    const total = await this.prisma.projectMember.count({ where });
+
+    const { skip, take } = getPagination(
+      paginationDto.page,
+      paginationDto.limitPerPage,
+    );
     const memberships = await this.prisma.projectMember.findMany({
-      where: { userId },
+      where,
       include: { project: true },
+      skip,
+      take,
     });
 
-    return memberships.map((m) => m.project);
+    const data = memberships.map((m) => m.project);
+    return formatPaginatedResponse(data, total, paginationDto);
   }
 
   async findOne(projectId: number) {
@@ -82,7 +97,7 @@ export class ProjectService {
     return { message: 'Project deleted successfully' };
   }
 
-  async getMembers(projectId: number) {
+  async getMembers(projectId: number, paginationDto: PaginationDto) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
     });
@@ -91,10 +106,21 @@ export class ProjectService {
       throw new NotFoundException('Project not found');
     }
 
-    return this.prisma.projectMember.findMany({
-      where: { projectId },
+    const where = { projectId };
+    const total = await this.prisma.projectMember.count({ where });
+
+    const { skip, take } = getPagination(
+      paginationDto.page,
+      paginationDto.limitPerPage,
+    );
+    const data = await this.prisma.projectMember.findMany({
+      where,
       include: { user: { select: { id: true, email: true } } },
+      skip,
+      take,
     });
+
+    return formatPaginatedResponse(data, total, paginationDto);
   }
 
   async removeMember(projectId: number, memberUserId: number) {
@@ -182,7 +208,7 @@ export class ProjectService {
     return { message: 'Invitation sent successfully' };
   }
 
-  async getInvitations(projectId: number) {
+  async getInvitations(projectId: number, paginationDto: PaginationDto) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
     });
@@ -191,13 +217,24 @@ export class ProjectService {
       throw new NotFoundException('Project not found');
     }
 
-    return this.prisma.invitation.findMany({
-      where: { projectId },
+    const where = { projectId };
+    const total = await this.prisma.invitation.count({ where });
+
+    const { skip, take } = getPagination(
+      paginationDto.page,
+      paginationDto.limitPerPage,
+    );
+    const data = await this.prisma.invitation.findMany({
+      where,
       include: {
         invitedBy: { select: { id: true, email: true } },
         invitedUser: { select: { id: true, email: true } },
       },
       orderBy: { createdAt: 'desc' },
+      skip,
+      take,
     });
+
+    return formatPaginatedResponse(data, total, paginationDto);
   }
 }

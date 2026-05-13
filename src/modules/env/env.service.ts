@@ -4,6 +4,11 @@ import { CreateEnvGroupDto } from './dto/create-env-group.dto.js';
 import { UpdateEnvGroupDto } from './dto/update-env-group.dto.js';
 import { CreateEnvVariableDto } from './dto/create-env-variable.dto.js';
 import { UpdateEnvVariableDto } from './dto/update-env-variable.dto.js';
+import {
+  getPagination,
+  formatPaginatedResponse,
+} from '../../../utils/pagination/pagination.util.js';
+import { PaginationDto } from '../../../utils/pagination/dto/pagiantion.dto.js';
 
 @Injectable()
 export class EnvService {
@@ -26,7 +31,7 @@ export class EnvService {
     });
   }
 
-  async findGroups(projectId: number) {
+  async findGroups(projectId: number, paginationDto: PaginationDto) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
     });
@@ -35,11 +40,22 @@ export class EnvService {
       throw new NotFoundException('Project not found');
     }
 
-    return this.prisma.envGroup.findMany({
-      where: { projectId },
+    const where = { projectId };
+    const total = await this.prisma.envGroup.count({ where });
+
+    const { skip, take } = getPagination(
+      paginationDto.page,
+      paginationDto.limitPerPage,
+    );
+    const data = await this.prisma.envGroup.findMany({
+      where,
       include: { variables: true },
       orderBy: { createdAt: 'asc' },
+      skip,
+      take,
     });
+
+    return formatPaginatedResponse(data, total, paginationDto);
   }
 
   async findGroup(envGroupId: string) {
