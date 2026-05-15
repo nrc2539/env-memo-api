@@ -14,6 +14,9 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto.js';
 import { ResetPasswordDto } from './dto/reset-password.dto.js';
 import { RefreshDto } from './dto/refresh.dto.js';
 import { SetupPasswordDto } from './dto/setup-password.dto.js';
+import { ChangePasswordDto } from './dto/change-password.dto.js';
+
+const SALT_ROUNDS = 10;
 
 @Injectable()
 export class AuthService {
@@ -31,7 +34,7 @@ export class AuthService {
       throw new ConflictException('Email already registered');
     }
 
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const hashedPassword = await bcrypt.hash(dto.password, SALT_ROUNDS);
 
     await this.prisma.user.create({
       data: {
@@ -119,7 +122,7 @@ export class AuthService {
       throw new BadRequestException('Invalid or expired reset token');
     }
 
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const hashedPassword = await bcrypt.hash(dto.password, SALT_ROUNDS);
 
     await this.prisma.user.update({
       where: { id: user.id },
@@ -142,7 +145,7 @@ export class AuthService {
       throw new BadRequestException('Invalid or expired setup token');
     }
 
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const hashedPassword = await bcrypt.hash(dto.password, SALT_ROUNDS);
 
     await this.prisma.user.update({
       where: { id: user.id },
@@ -169,6 +172,36 @@ export class AuthService {
     }
 
     return { message: 'Password set successfully' };
+  }
+
+  async changePassword(userId: number, dto: ChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user || !user.password) {
+      throw new BadRequestException(
+        'Password change not available for this account',
+      );
+    }
+
+    const isCurrentPasswordValid = await bcrypt.compare(
+      dto.currentPassword,
+      user.password,
+    );
+
+    if (!isCurrentPasswordValid) {
+      throw new BadRequestException('Current password is incorrect');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.newPassword, SALT_ROUNDS);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+
+    return { message: 'Password changed successfully' };
   }
 
   private async generateTokens(userId: number, email: string) {

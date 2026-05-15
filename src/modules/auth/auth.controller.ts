@@ -6,6 +6,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto.js';
 import { ResetPasswordDto } from './dto/reset-password.dto.js';
 import { RefreshDto } from './dto/refresh.dto.js';
 import { SetupPasswordDto } from './dto/setup-password.dto.js';
+import { ChangePasswordDto } from './dto/change-password.dto.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { CurrentUser } from './decorators/current-user.decorator.js';
 
@@ -41,6 +42,15 @@ export class AuthController {
   @Post('setup-password')
   setupPassword(@Body() dto: SetupPasswordDto) {
     return this.authService.setupPassword(dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  changePassword(
+    @CurrentUser() user: { id: number },
+    @Body() dto: ChangePasswordDto,
+  ) {
+    return this.authService.changePassword(user.id, dto);
   }
 
   @UseGuards(JwtAuthGuard)
