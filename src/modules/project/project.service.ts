@@ -53,7 +53,7 @@ export class ProjectService {
       where: { id: projectId },
       include: {
         members: {
-          include: { user: { select: { id: true, email: true } } },
+          include: { user: { select: { id: true, email: true, name: true } } },
         },
       },
     });
@@ -109,7 +109,7 @@ export class ProjectService {
     const { skip, take } = getPagination(paginationDto);
     const data = await this.prisma.projectMember.findMany({
       where,
-      include: { user: { select: { id: true, email: true } } },
+      include: { user: { select: { id: true, email: true, name: true } } },
       skip,
       take,
     });
@@ -218,8 +218,8 @@ export class ProjectService {
     const data = await this.prisma.invitation.findMany({
       where,
       include: {
-        invitedBy: { select: { id: true, email: true } },
-        invitedUser: { select: { id: true, email: true } },
+        invitedBy: { select: { id: true, email: true, name: true } },
+        invitedUser: { select: { id: true, email: true, name: true } },
       },
       orderBy: { createdAt: 'desc' },
       skip,

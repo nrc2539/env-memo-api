@@ -5,6 +5,9 @@ export class SetupPasswordDto {
   token: string;
 
   @IsString()
+  name: string;
+
+  @IsString()
   @MinLength(6)
   password: string;
 }

@@ -41,6 +41,7 @@ export class AuthService {
     await this.prisma.user.create({
       data: {
         email: dto.email,
+        name: dto.name,
         password: hashedPassword,
       },
     });
@@ -151,7 +152,11 @@ export class AuthService {
 
     await this.prisma.user.update({
       where: { id: user.id },
-      data: { password: hashedPassword, setupPasswordToken: null },
+      data: {
+        password: hashedPassword,
+        name: dto.name,
+        setupPasswordToken: null,
+      },
     });
 
     const invitation = await this.prisma.invitation.findFirst({
@@ -230,7 +235,12 @@ export class AuthService {
 
     const tokenType = user.resetToken === dto.token ? 'reset' : 'setup';
 
-    return { id: user.id, email: user.email, tokenType };
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name ?? undefined,
+      tokenType,
+    };
   }
 
   private async generateTokens(userId: number, email: string) {

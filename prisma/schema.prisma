@@ -23,6 +23,7 @@ enum InvitationStatus {
 model User {
   id                 Int    @id @default(autoincrement())
   email              String    @unique
+  name               String?
   password           String?
   setupPasswordToken String?   @unique
   resetToken         String?
