@@ -68,9 +68,10 @@ export class ProjectController {
   @Get(':id/members')
   getMembers(
     @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: { id: number },
     @Query() paginationDto: PaginationDto,
   ) {
-    return this.projectService.getMembers(id, paginationDto);
+    return this.projectService.getMembers(id, user.id, paginationDto);
   }
 
   @UseGuards(ProjectRoleGuard)

@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateProjectDto } from './dto/create-project.dto.js';
@@ -115,13 +116,25 @@ export class ProjectService {
     return { message: 'Project deleted successfully' };
   }
 
-  async getMembers(projectId: number, paginationDto: PaginationDto) {
+  async getMembers(
+    projectId: number,
+    userId: number,
+    paginationDto: PaginationDto,
+  ) {
     const project = await this.prisma.project.findFirst({
       where: { id: projectId, deletedAt: null },
     });
 
     if (!project) {
       throw new NotFoundException('Project not found');
+    }
+
+    const membership = await this.prisma.projectMember.findFirst({
+      where: { userId, projectId, deletedAt: null },
+    });
+
+    if (!membership) {
+      throw new ForbiddenException('You are not a member of this project');
     }
 
     const where = { projectId, deletedAt: null };
