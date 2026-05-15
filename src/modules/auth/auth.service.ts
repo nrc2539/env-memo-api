@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service.js';
+import type { UserModel } from '../../generated/models/User.js';
 import { RegisterDto } from './dto/register.dto.js';
 import { LoginDto } from './dto/login.dto.js';
 import { ForgotPasswordDto } from './dto/forgot-password.dto.js';
@@ -15,6 +16,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto.js';
 import { RefreshDto } from './dto/refresh.dto.js';
 import { SetupPasswordDto } from './dto/setup-password.dto.js';
 import { ChangePasswordDto } from './dto/change-password.dto.js';
+import { VerifyTokenDto } from './dto/verify-token.dto.js';
 
 const SALT_ROUNDS = 10;
 
@@ -202,6 +204,33 @@ export class AuthService {
     });
 
     return { message: 'Password changed successfully' };
+  }
+
+  async verifyToken(dto: VerifyTokenDto) {
+    let user: UserModel | null = null;
+
+    if (dto.type === 'reset' || !dto.type) {
+      user = await this.prisma.user.findFirst({
+        where: {
+          resetToken: dto.token,
+          resetTokenExpiry: { gt: new Date() },
+        },
+      });
+    }
+
+    if (!user && (dto.type === 'setup' || !dto.type)) {
+      user = await this.prisma.user.findUnique({
+        where: { setupPasswordToken: dto.token },
+      });
+    }
+
+    if (!user) {
+      throw new BadRequestException('Invalid or expired token');
+    }
+
+    const tokenType = user.resetToken === dto.token ? 'reset' : 'setup';
+
+    return { id: user.id, email: user.email, tokenType };
   }
 
   private async generateTokens(userId: number, email: string) {
