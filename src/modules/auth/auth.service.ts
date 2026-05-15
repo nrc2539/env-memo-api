@@ -3,6 +3,7 @@ import {
   UnauthorizedException,
   ConflictException,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -17,6 +18,7 @@ import { RefreshDto } from './dto/refresh.dto.js';
 import { SetupPasswordDto } from './dto/setup-password.dto.js';
 import { ChangePasswordDto } from './dto/change-password.dto.js';
 import { VerifyTokenDto } from './dto/verify-token.dto.js';
+import { UpdateProfileDto } from './dto/update-profile.dto.js';
 
 const SALT_ROUNDS = 10;
 
@@ -179,6 +181,31 @@ export class AuthService {
     }
 
     return { message: 'Password set successfully' };
+  }
+
+  async updateProfile(userId: number, dto: UpdateProfileDto) {
+    const trimmedName = dto.name.trim();
+
+    if (!trimmedName) {
+      throw new BadRequestException(
+        'Name must not be empty or whitespace only',
+      );
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { name: trimmedName },
+    });
+
+    return { message: 'Profile updated successfully' };
   }
 
   async changePassword(userId: number, dto: ChangePasswordDto) {
