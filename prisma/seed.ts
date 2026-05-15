@@ -22,6 +22,30 @@ async function main() {
   });
 
   console.log('Seeded user:', user.email);
+
+  const editorUser = await prisma.user.upsert({
+    where: { email: 'editor@email.com' },
+    update: {},
+    create: {
+      email: 'editor@email.com',
+      name: 'Editor',
+      password: hashedPassword,
+    },
+  });
+
+  console.log('Seeded user:', editorUser.email);
+
+  const viewerUser = await prisma.user.upsert({
+    where: { email: 'viewer@email.com' },
+    update: {},
+    create: {
+      email: 'viewer@email.com',
+      name: 'Viewer',
+      password: hashedPassword,
+    },
+  });
+
+  console.log('Seeded user:', viewerUser.email);
 }
 
 main()
