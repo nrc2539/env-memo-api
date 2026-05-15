@@ -33,7 +33,7 @@ export class ProjectService {
   }
 
   async findAll(userId: number, paginationDto: PaginationDto) {
-    const where = { userId };
+    const where = { userId, deletedAt: null };
     const total = await this.prisma.projectMember.count({ where });
 
     const { skip, take } = getPagination(paginationDto);
@@ -52,8 +52,8 @@ export class ProjectService {
   }
 
   async findOne(projectId: number, userId: number) {
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, deletedAt: null },
       include: {
         members: {
           include: { user: { select: { id: true, email: true, name: true } } },
@@ -74,8 +74,8 @@ export class ProjectService {
   }
 
   async update(projectId: number, dto: UpdateProjectDto) {
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, deletedAt: null },
     });
 
     if (!project) {
@@ -89,29 +89,42 @@ export class ProjectService {
   }
 
   async remove(projectId: number) {
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, deletedAt: null },
     });
 
     if (!project) {
       throw new NotFoundException('Project not found');
     }
 
-    await this.prisma.project.delete({ where: { id: projectId } });
+    await this.prisma.$transaction([
+      this.prisma.project.update({
+        where: { id: projectId },
+        data: { deletedAt: new Date() },
+      }),
+      this.prisma.envGroup.updateMany({
+        where: { projectId },
+        data: { deletedAt: new Date() },
+      }),
+      this.prisma.projectMember.updateMany({
+        where: { projectId },
+        data: { deletedAt: new Date() },
+      }),
+    ]);
 
     return { message: 'Project deleted successfully' };
   }
 
   async getMembers(projectId: number, paginationDto: PaginationDto) {
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, deletedAt: null },
     });
 
     if (!project) {
       throw new NotFoundException('Project not found');
     }
 
-    const where = { projectId };
+    const where = { projectId, deletedAt: null };
     const total = await this.prisma.projectMember.count({ where });
 
     const { skip, take } = getPagination(paginationDto);
@@ -126,9 +139,11 @@ export class ProjectService {
   }
 
   async removeMember(projectId: number, memberUserId: number) {
-    const member = await this.prisma.projectMember.findUnique({
+    const member = await this.prisma.projectMember.findFirst({
       where: {
-        userId_projectId: { userId: memberUserId, projectId },
+        userId: memberUserId,
+        projectId,
+        deletedAt: null,
       },
     });
 
@@ -140,16 +155,17 @@ export class ProjectService {
       throw new ConflictException('Cannot remove the project owner');
     }
 
-    await this.prisma.projectMember.delete({
+    await this.prisma.projectMember.update({
       where: { id: member.id },
+      data: { deletedAt: new Date() },
     });
 
     return { message: 'Member removed successfully' };
   }
 
   async invite(projectId: number, invitedById: number, dto: InviteMemberDto) {
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, deletedAt: null },
     });
 
     if (!project) {
@@ -161,14 +177,26 @@ export class ProjectService {
     });
 
     if (existingUser) {
-      const alreadyMember = await this.prisma.projectMember.findUnique({
+      const existingMember = await this.prisma.projectMember.findFirst({
         where: {
-          userId_projectId: { userId: existingUser.id, projectId },
+          userId: existingUser.id,
+          projectId,
         },
       });
 
-      if (alreadyMember) {
-        throw new ConflictException('User is already a member of this project');
+      if (existingMember) {
+        if (existingMember.deletedAt === null) {
+          throw new ConflictException(
+            'User is already a member of this project',
+          );
+        }
+
+        await this.prisma.projectMember.update({
+          where: { id: existingMember.id },
+          data: { deletedAt: null, role: dto.role },
+        });
+
+        return { message: 'User added to project successfully' };
       }
 
       await this.prisma.projectMember.create({
@@ -211,8 +239,8 @@ export class ProjectService {
   }
 
   async getInvitations(projectId: number, paginationDto: PaginationDto) {
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, deletedAt: null },
     });
 
     if (!project) {

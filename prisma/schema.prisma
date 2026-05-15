@@ -44,6 +44,7 @@ model Project {
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
 
   members     ProjectMember[] @relation("ProjectMembers")
   invitations Invitation[]    @relation("ProjectInvitations")
@@ -56,6 +57,7 @@ model ProjectMember {
   userId    Int
   projectId Int
   createdAt DateTime @default(now())
+  deletedAt DateTime?
 
   user    User    @relation(fields: [userId], references: [id])
   project Project @relation("ProjectMembers", fields: [projectId], references: [id], onDelete: Cascade)
@@ -87,6 +89,7 @@ model EnvGroup {
   projectId   Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
 
   project   Project       @relation("ProjectEnvGroups", fields: [projectId], references: [id], onDelete: Cascade)
   variables EnvVariable[] @relation("EnvGroupVariables")

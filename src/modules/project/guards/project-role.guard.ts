@@ -41,9 +41,11 @@ export class ProjectRoleGuard implements CanActivate {
 
     const projectId = +projectIdParam;
 
-    const member = await this.prisma.projectMember.findUnique({
+    const member = await this.prisma.projectMember.findFirst({
       where: {
-        userId_projectId: { userId: user.id, projectId },
+        userId: user.id,
+        projectId,
+        deletedAt: null,
       },
     });
 

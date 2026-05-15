@@ -15,8 +15,8 @@ export class EnvService {
   constructor(private prisma: PrismaService) {}
 
   async createGroup(projectId: number, dto: CreateEnvGroupDto) {
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, deletedAt: null },
     });
 
     if (!project) {
@@ -32,15 +32,15 @@ export class EnvService {
   }
 
   async findGroups(projectId: number, paginationDto: PaginationDto) {
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, deletedAt: null },
     });
 
     if (!project) {
       throw new NotFoundException('Project not found');
     }
 
-    const where = { projectId };
+    const where = { projectId, deletedAt: null };
     const total = await this.prisma.envGroup.count({ where });
 
     const { skip, take } = getPagination(paginationDto);
@@ -56,8 +56,8 @@ export class EnvService {
   }
 
   async findGroup(envGroupId: string) {
-    const group = await this.prisma.envGroup.findUnique({
-      where: { id: envGroupId },
+    const group = await this.prisma.envGroup.findFirst({
+      where: { id: envGroupId, deletedAt: null },
       include: { variables: true },
     });
 
@@ -69,8 +69,8 @@ export class EnvService {
   }
 
   async updateGroup(envGroupId: string, dto: UpdateEnvGroupDto) {
-    const group = await this.prisma.envGroup.findUnique({
-      where: { id: envGroupId },
+    const group = await this.prisma.envGroup.findFirst({
+      where: { id: envGroupId, deletedAt: null },
     });
 
     if (!group) {
@@ -85,22 +85,25 @@ export class EnvService {
   }
 
   async removeGroup(envGroupId: string) {
-    const group = await this.prisma.envGroup.findUnique({
-      where: { id: envGroupId },
+    const group = await this.prisma.envGroup.findFirst({
+      where: { id: envGroupId, deletedAt: null },
     });
 
     if (!group) {
       throw new NotFoundException('Environment group not found');
     }
 
-    await this.prisma.envGroup.delete({ where: { id: envGroupId } });
+    await this.prisma.envGroup.update({
+      where: { id: envGroupId },
+      data: { deletedAt: new Date() },
+    });
 
     return { message: 'Environment group deleted successfully' };
   }
 
   async createVariable(envGroupId: string, dto: CreateEnvVariableDto) {
-    const group = await this.prisma.envGroup.findUnique({
-      where: { id: envGroupId },
+    const group = await this.prisma.envGroup.findFirst({
+      where: { id: envGroupId, deletedAt: null },
     });
 
     if (!group) {
