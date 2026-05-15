@@ -44,11 +44,14 @@ export class ProjectService {
       take,
     });
 
-    const data = memberships.map((m) => m.project);
+    const data = memberships.map((m) => ({
+      ...m.project,
+      role: m.role,
+    }));
     return formatPaginatedResponse(data, total, paginationDto);
   }
 
-  async findOne(projectId: number) {
+  async findOne(projectId: number, userId: number) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
       include: {
@@ -62,7 +65,12 @@ export class ProjectService {
       throw new NotFoundException('Project not found');
     }
 
-    return project;
+    const membership = project.members.find((m) => m.userId === userId);
+
+    return {
+      ...project,
+      role: membership?.role ?? null,
+    };
   }
 
   async update(projectId: number, dto: UpdateProjectDto) {

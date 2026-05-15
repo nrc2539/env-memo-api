@@ -42,8 +42,11 @@ export class ProjectController {
   @UseGuards(ProjectRoleGuard)
   @RequireProjectRole(RoleEnum.VIEWER, RoleEnum.EDITOR, RoleEnum.OWNER)
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.projectService.findOne(id);
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: { id: number },
+  ) {
+    return this.projectService.findOne(id, user.id);
   }
 
   @UseGuards(ProjectRoleGuard)
