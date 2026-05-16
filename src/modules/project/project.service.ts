@@ -256,7 +256,11 @@ export class ProjectService {
     return { message: 'Invitation sent successfully' };
   }
 
-  async getInvitations(projectId: number, paginationDto: PaginationDto) {
+  async getInvitations(
+    projectId: number,
+    paginationDto: PaginationDto,
+    status?: string,
+  ) {
     const project = await this.prisma.project.findFirst({
       where: { id: projectId, deletedAt: null },
     });
@@ -265,7 +269,12 @@ export class ProjectService {
       throw new NotFoundException('Project not found');
     }
 
-    const where = { projectId };
+    const where: Record<string, unknown> = { projectId };
+
+    if (status) {
+      where.status = status;
+    }
+
     const total = await this.prisma.invitation.count({ where });
 
     const { skip, take } = getPagination(paginationDto);
