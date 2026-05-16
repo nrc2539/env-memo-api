@@ -5,6 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { EmailService } from '../email/email.service.js';
 import { CreateProjectDto } from './dto/create-project.dto.js';
 import { UpdateProjectDto } from './dto/update-project.dto.js';
 import { InviteMemberDto } from './dto/invite-member.dto.js';
@@ -17,7 +18,10 @@ import { PaginationDto } from '../../../utils/pagination/dto/pagination.dto.js';
 
 @Injectable()
 export class ProjectService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService,
+  ) {}
 
   async create(userId: number, dto: CreateProjectDto) {
     const project = await this.prisma.project.create({
@@ -244,8 +248,9 @@ export class ProjectService {
       },
     });
 
-    console.log(
-      `[MOCK EMAIL] Invitation sent to ${dto.email} with token: ${setupPasswordToken}`,
+    await this.emailService.sendSetupPasswordEmail(
+      dto.email,
+      setupPasswordToken,
     );
 
     return { message: 'Invitation sent successfully' };

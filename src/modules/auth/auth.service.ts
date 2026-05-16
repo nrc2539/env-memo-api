@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { EmailService } from '../email/email.service.js';
 import type { UserModel } from '../../generated/models/User.js';
 import { RegisterDto } from './dto/register.dto.js';
 import { LoginDto } from './dto/login.dto.js';
@@ -27,6 +28,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private emailService: EmailService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -111,6 +113,8 @@ export class AuthService {
       where: { id: user.id },
       data: { resetToken, resetTokenExpiry },
     });
+
+    await this.emailService.sendResetPasswordEmail(user.email, resetToken);
 
     return { message: 'If that email exists, a reset link has been sent' };
   }

@@ -6,6 +6,7 @@ import { PrismaModule } from './modules/prisma/prisma.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { ProjectModule } from './modules/project/project.module.js';
 import { EnvModule } from './modules/env/env.module.js';
+import { EmailModule } from './modules/email/email.module.js';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { EnvModule } from './modules/env/env.module.js';
     AuthModule,
     ProjectModule,
     EnvModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
