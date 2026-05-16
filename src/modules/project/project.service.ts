@@ -37,8 +37,13 @@ export class ProjectService {
     return project;
   }
 
-  async findAll(userId: number, paginationDto: PaginationDto) {
-    const where = { userId, deletedAt: null };
+  async findAll(userId: number, paginationDto: PaginationDto, search?: string) {
+    const where: Record<string, unknown> = { userId, deletedAt: null };
+
+    if (search) {
+      where.project = { name: { contains: search, mode: 'insensitive' } };
+    }
+
     const total = await this.prisma.projectMember.count({ where });
 
     const { skip, take } = getPagination(paginationDto);

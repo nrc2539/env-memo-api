@@ -15,6 +15,7 @@ import { CreateProjectDto } from './dto/create-project.dto.js';
 import { UpdateProjectDto } from './dto/update-project.dto.js';
 import { InviteMemberDto } from './dto/invite-member.dto.js';
 import { GetInvitationsDto } from './dto/get-invitations.dto.js';
+import { GetProjectsDto } from './dto/get-projects.dto.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 import { RequireProjectRole } from './decorators/require-project-role.decorator.js';
@@ -33,11 +34,8 @@ export class ProjectController {
   }
 
   @Get()
-  findAll(
-    @CurrentUser() user: { id: number },
-    @Query() paginationDto: PaginationDto,
-  ) {
-    return this.projectService.findAll(user.id, paginationDto);
+  findAll(@CurrentUser() user: { id: number }, @Query() query: GetProjectsDto) {
+    return this.projectService.findAll(user.id, query, query.search);
   }
 
   @UseGuards(ProjectRoleGuard)
