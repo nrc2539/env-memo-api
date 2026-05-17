@@ -9,7 +9,7 @@ import { EmailService } from '../email/email.service.js';
 import { CreateProjectDto } from './dto/create-project.dto.js';
 import { UpdateProjectDto } from './dto/update-project.dto.js';
 import { InviteMemberDto } from './dto/invite-member.dto.js';
-import { randomBytes } from 'node:crypto';
+import { generateToken } from '../../../utils/generate-token.util';
 import {
   getPagination,
   formatPaginatedResponse,
@@ -199,6 +199,30 @@ export class ProjectService {
     });
 
     if (existingUser) {
+      const existingInvitation = await this.prisma.invitation.findFirst({
+        where: {
+          invitedUserId: existingUser.id,
+          projectId,
+          status: 'PENDING',
+        },
+      });
+
+      if (existingInvitation) {
+        const setupPasswordToken = generateToken();
+
+        await this.prisma.invitation.update({
+          where: { id: existingInvitation.id },
+          data: { token: setupPasswordToken },
+        });
+
+        await this.emailService.sendSetupPasswordEmail(
+          dto.email,
+          setupPasswordToken,
+        );
+
+        return { message: 'Invitation re-sent successfully' };
+      }
+
       const existingMember = await this.prisma.projectMember.findFirst({
         where: {
           userId: existingUser.id,
@@ -232,7 +256,7 @@ export class ProjectService {
       return { message: 'User added to project successfully' };
     }
 
-    const setupPasswordToken = randomBytes(32).toString('hex');
+    const setupPasswordToken = generateToken();
 
     const newUser = await this.prisma.user.create({
       data: {

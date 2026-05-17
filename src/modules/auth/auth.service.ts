@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { randomBytes } from 'node:crypto';
+import { generateToken } from '../../../utils/generate-token.util';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { EmailService } from '../email/email.service.js';
 import type { UserModel } from '../../generated/models/User.js';
@@ -106,7 +106,7 @@ export class AuthService {
       return { message: 'If that email exists, a reset link has been sent' };
     }
 
-    const resetToken = randomBytes(32).toString('hex');
+    const resetToken = generateToken();
     const resetTokenExpiry = new Date(Date.now() + 3600000);
 
     await this.prisma.user.update({
