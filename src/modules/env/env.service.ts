@@ -46,7 +46,11 @@ export class EnvService {
     const { skip, take } = getPagination(paginationDto);
     const data = await this.prisma.envGroup.findMany({
       where,
-      include: { variables: true },
+      include: {
+        variables: {
+          orderBy: { createdAt: 'asc' },
+        },
+      },
       orderBy: { createdAt: 'asc' },
       skip,
       take,
