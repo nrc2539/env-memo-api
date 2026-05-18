@@ -208,19 +208,9 @@ export class ProjectService {
       });
 
       if (existingInvitation) {
-        const setupPasswordToken = generateToken();
-
-        await this.prisma.invitation.update({
-          where: { id: existingInvitation.id },
-          data: { token: setupPasswordToken },
-        });
-
-        await this.emailService.sendSetupPasswordEmail(
-          dto.email,
-          setupPasswordToken,
+        throw new ConflictException(
+          'A pending invitation already exists for this user.',
         );
-
-        return { message: 'Invitation re-sent successfully' };
       }
 
       const existingMember = await this.prisma.projectMember.findFirst({
@@ -262,7 +252,6 @@ export class ProjectService {
       data: {
         email: dto.email,
         password: null,
-        setupPasswordToken,
       },
     });
 
@@ -283,6 +272,31 @@ export class ProjectService {
     );
 
     return { message: 'Invitation sent successfully' };
+  }
+
+  async resendInvite(projectId: number, invitationId: number) {
+    const invitation = await this.prisma.invitation.findFirst({
+      where: { id: invitationId, projectId, status: 'PENDING' },
+      include: { invitedUser: true },
+    });
+
+    if (!invitation || !invitation.invitedUser) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    const setupPasswordToken = generateToken();
+
+    await this.prisma.invitation.update({
+      where: { id: invitation.id },
+      data: { token: setupPasswordToken },
+    });
+
+    await this.emailService.sendSetupPasswordEmail(
+      invitation.email,
+      setupPasswordToken,
+    );
+
+    return { message: 'Invitation re-sent successfully' };
   }
 
   async getInvitations(

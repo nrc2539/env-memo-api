@@ -43,7 +43,7 @@ export class EmailService {
 
   async sendResetPasswordEmail(to: string, token: string): Promise<void> {
     const frontendUrl = this.configService.get<string>('FRONTEND_URL')!;
-    const resetLink = `${frontendUrl}/auth/reset-password?token=${token}`;
+    const resetLink = `${frontendUrl}/reset-password?token=${token}`;
 
     const html = `
       <!DOCTYPE html>
@@ -66,7 +66,7 @@ export class EmailService {
 
   async sendSetupPasswordEmail(to: string, token: string): Promise<void> {
     const frontendUrl = this.configService.get<string>('FRONTEND_URL')!;
-    const setupLink = `${frontendUrl}/auth/setup-password?token=${token}`;
+    const setupLink = `${frontendUrl}/setup-password?token=${token}`;
 
     const html = `
       <!DOCTYPE html>

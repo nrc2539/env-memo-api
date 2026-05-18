@@ -146,8 +146,16 @@ export class AuthService {
   }
 
   async setupPassword(dto: SetupPasswordDto) {
+    const invitation = await this.prisma.invitation.findUnique({
+      where: { token: dto.token },
+    });
+
+    if (!invitation || !invitation.invitedUserId) {
+      throw new BadRequestException('Invalid or expired setup token');
+    }
+
     const user = await this.prisma.user.findUnique({
-      where: { setupPasswordToken: dto.token },
+      where: { id: invitation.invitedUserId },
     });
 
     if (!user) {
@@ -161,27 +169,31 @@ export class AuthService {
       data: {
         password: hashedPassword,
         name: dto.name,
-        setupPasswordToken: null,
       },
     });
 
-    const invitation = await this.prisma.invitation.findFirst({
+    const invitations = await this.prisma.invitation.findMany({
       where: { invitedUserId: user.id, status: 'PENDING' },
     });
 
-    if (invitation) {
-      await this.prisma.projectMember.create({
-        data: {
-          userId: user.id,
-          projectId: invitation.projectId,
-          role: invitation.role,
-        },
-      });
-
-      await this.prisma.invitation.update({
-        where: { id: invitation.id },
-        data: { status: 'ACCEPTED' },
-      });
+    if (invitations.length > 0) {
+      await this.prisma.$transaction([
+        ...invitations.map((inv) =>
+          this.prisma.projectMember.create({
+            data: {
+              userId: user.id,
+              projectId: inv.projectId,
+              role: inv.role,
+            },
+          }),
+        ),
+        ...invitations.map((inv) =>
+          this.prisma.invitation.update({
+            where: { id: inv.id },
+            data: { status: 'ACCEPTED' },
+          }),
+        ),
+      ]);
     }
 
     return { message: 'Password set successfully' };
@@ -255,9 +267,14 @@ export class AuthService {
     }
 
     if (!user && (dto.type === 'setup' || !dto.type)) {
-      user = await this.prisma.user.findUnique({
-        where: { setupPasswordToken: dto.token },
+      const invitation = await this.prisma.invitation.findUnique({
+        where: { token: dto.token },
       });
+      if (invitation) {
+        user = await this.prisma.user.findUnique({
+          where: { id: invitation.invitedUserId! },
+        });
+      }
     }
 
     if (!user) {

@@ -8,8 +8,8 @@ CREATE TYPE "InvitationStatus" AS ENUM ('PENDING', 'ACCEPTED');
 CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
     "email" TEXT NOT NULL,
+    "name" TEXT,
     "password" TEXT,
-    "setupPasswordToken" TEXT,
     "resetToken" TEXT,
     "resetTokenExpiry" TIMESTAMP(3),
     "refreshToken" TEXT,
@@ -83,9 +83,6 @@ CREATE TABLE "EnvVariable" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
-
--- CreateIndex
-CREATE UNIQUE INDEX "User_setupPasswordToken_key" ON "User"("setupPasswordToken");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ProjectMember_userId_projectId_key" ON "ProjectMember"("userId", "projectId");
