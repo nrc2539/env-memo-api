@@ -15,6 +15,7 @@ import {
   formatPaginatedResponse,
 } from '../../../utils/pagination/pagination.util.js';
 import { PaginationDto } from '../../../utils/pagination/dto/pagination.dto.js';
+import { RoleEnum } from '../../../utils/enums/role.enum.js';
 
 @Injectable()
 export class ProjectService {
@@ -235,6 +236,17 @@ export class ProjectService {
         return { message: 'User added to project successfully' };
       }
 
+      if (existingUser.password === null) {
+        await this.createInvitation({
+          email: dto.email,
+          role: dto.role,
+          invitedUserId: existingUser.id,
+          projectId,
+          invitedById,
+        });
+        return { message: 'Invitation sent successfully' };
+      }
+
       await this.prisma.projectMember.create({
         data: {
           userId: existingUser.id,
@@ -246,8 +258,6 @@ export class ProjectService {
       return { message: 'User added to project successfully' };
     }
 
-    const setupPasswordToken = generateToken();
-
     const newUser = await this.prisma.user.create({
       data: {
         email: dto.email,
@@ -255,21 +265,13 @@ export class ProjectService {
       },
     });
 
-    await this.prisma.invitation.create({
-      data: {
-        email: dto.email,
-        role: dto.role,
-        token: setupPasswordToken,
-        projectId,
-        invitedById,
-        invitedUserId: newUser.id,
-      },
+    await this.createInvitation({
+      email: dto.email,
+      role: dto.role,
+      invitedUserId: newUser.id,
+      projectId,
+      invitedById,
     });
-
-    await this.emailService.sendSetupPasswordEmail(
-      dto.email,
-      setupPasswordToken,
-    );
 
     return { message: 'Invitation sent successfully' };
   }
@@ -297,6 +299,45 @@ export class ProjectService {
     );
 
     return { message: 'Invitation re-sent successfully' };
+  }
+
+  async removeInvite(projectId: number, invitationId: number) {
+    const invitation = await this.prisma.invitation.findFirst({
+      where: { id: invitationId, projectId, status: 'PENDING' },
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    await this.prisma.invitation.update({
+      where: { id: invitation.id },
+      data: { status: 'CANCELLED' },
+    });
+
+    return { message: 'Invitation removed successfully' };
+  }
+
+  private async createInvitation(data: {
+    email: string;
+    role: RoleEnum;
+    invitedUserId: number;
+    projectId: number;
+    invitedById: number;
+  }) {
+    const setupPasswordToken = generateToken();
+
+    await this.prisma.invitation.create({
+      data: {
+        ...data,
+        token: setupPasswordToken,
+      },
+    });
+
+    await this.emailService.sendSetupPasswordEmail(
+      data.email,
+      setupPasswordToken,
+    );
   }
 
   async getInvitations(

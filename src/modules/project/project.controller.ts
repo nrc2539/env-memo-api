@@ -106,6 +106,16 @@ export class ProjectController {
 
   @UseGuards(ProjectRoleGuard)
   @RequireProjectRole(RoleEnum.OWNER)
+  @Delete(':id/invitations/:invitationId')
+  removeInvite(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('invitationId', ParseIntPipe) invitationId: number,
+  ) {
+    return this.projectService.removeInvite(id, invitationId);
+  }
+
+  @UseGuards(ProjectRoleGuard)
+  @RequireProjectRole(RoleEnum.OWNER)
   @Get(':id/invitations')
   getInvitations(
     @Param('id', ParseIntPipe) id: number,

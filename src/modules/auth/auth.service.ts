@@ -146,8 +146,8 @@ export class AuthService {
   }
 
   async setupPassword(dto: SetupPasswordDto) {
-    const invitation = await this.prisma.invitation.findUnique({
-      where: { token: dto.token },
+    const invitation = await this.prisma.invitation.findFirst({
+      where: { token: dto.token, status: 'PENDING' },
     });
 
     if (!invitation || !invitation.invitedUserId) {
@@ -267,8 +267,8 @@ export class AuthService {
     }
 
     if (!user && (dto.type === 'setup' || !dto.type)) {
-      const invitation = await this.prisma.invitation.findUnique({
-        where: { token: dto.token },
+      const invitation = await this.prisma.invitation.findFirst({
+        where: { token: dto.token, status: 'PENDING' },
       });
       if (invitation) {
         user = await this.prisma.user.findUnique({
