@@ -11,6 +11,6 @@ async function bootstrap() {
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
   );
 
-  await app.listen(process.env.PORT ?? 8080);
+  await app.listen(process.env.API_PORT ?? 8080);
 }
 void bootstrap();
