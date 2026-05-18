@@ -101,6 +101,7 @@ jobs:
           env_vars: |-
             NODE_ENV=${{ github.event.inputs.environments }}
             PORT=${{ vars.API_PORT }}
+            FRONTEND_URL=${{ vars.FRONTEND_URL }}
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             SMTP_HOST=${{ secrets.SMTP_HOST }}
@@ -108,7 +109,6 @@ jobs:
             SMTP_USER=${{ secrets.SMTP_USER }}
             SMTP_PASS=${{ secrets.SMTP_PASS }}
             EMAIL_FROM=${{ secrets.EMAIL_FROM }}
-            FRONTEND_URL=${{ secrets.FRONTEND_URL }}
 
       # If required, use the Cloud Run URL output in later steps
       - name: 'Show output'
