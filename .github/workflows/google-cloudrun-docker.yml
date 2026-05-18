@@ -100,7 +100,7 @@ jobs:
           flags: '--allow-unauthenticated'
           env_vars: |-
             NODE_ENV=${{ github.event.inputs.environments }}
-            PORT=${{ vars.PORT }}
+            API_PORT=${{ vars.API_PORT }}
             FRONTEND_URL=${{ vars.FRONTEND_URL }}
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}

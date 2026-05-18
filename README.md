@@ -37,17 +37,17 @@ npx prisma db seed
 
 Copy `.env` and configure:
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DATABASE_URL` | `postgresql://postgres:password@localhost:5432/env-memo-db?schema=public` | PostgreSQL connection |
-| `JWT_SECRET` | — | JWT signing secret |
-| `PORT` | `8080` | API server port |
-| `SMTP_HOST` | `smtp.example.com` | SMTP server hostname |
-| `SMTP_PORT` | `587` | SMTP server port |
-| `SMTP_USER` | — | SMTP username |
-| `SMTP_PASS` | — | SMTP password |
-| `EMAIL_FROM` | `noreply@example.com` | Sender email address |
-| `FRONTEND_URL` | `http://localhost:3000` | Frontend URL for email links |
+| Variable       | Default                                                                   | Description                  |
+| -------------- | ------------------------------------------------------------------------- | ---------------------------- |
+| `DATABASE_URL` | `postgresql://postgres:password@localhost:5432/env-memo-db?schema=public` | PostgreSQL connection        |
+| `JWT_SECRET`   | —                                                                         | JWT signing secret           |
+| `API_PORT`     | `8080`                                                                    | API server port              |
+| `SMTP_HOST`    | `smtp.example.com`                                                        | SMTP server hostname         |
+| `SMTP_PORT`    | `587`                                                                     | SMTP server port             |
+| `SMTP_USER`    | —                                                                         | SMTP username                |
+| `SMTP_PASS`    | —                                                                         | SMTP password                |
+| `EMAIL_FROM`   | `noreply@example.com`                                                     | Sender email address         |
+| `FRONTEND_URL` | `http://localhost:3000`                                                   | Frontend URL for email links |
 
 > When SMTP is unconfigured (empty `SMTP_USER`/`SMTP_PASS`), emails are logged to the console instead of sent.
 
@@ -65,15 +65,15 @@ The API starts on `http://localhost:8080` with the global prefix `/api`.
 
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run build` | Compile TypeScript |
-| `npm run start` | Start the server |
-| `npm run start:dev` | Start with hot-reload |
+| Command              | Description                     |
+| -------------------- | ------------------------------- |
+| `npm run build`      | Compile TypeScript              |
+| `npm run start`      | Start the server                |
+| `npm run start:dev`  | Start with hot-reload           |
 | `npm run start:prod` | Start compiled production build |
-| `npm run lint` | Lint and fix source files |
-| `npm run test` | Run unit tests |
-| `npm run test:e2e` | Run end-to-end tests |
+| `npm run lint`       | Lint and fix source files       |
+| `npm run test`       | Run unit tests                  |
+| `npm run test:e2e`   | Run end-to-end tests            |
 
 ## API Documentation
 
