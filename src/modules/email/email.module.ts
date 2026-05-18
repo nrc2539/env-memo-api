@@ -19,7 +19,7 @@ import { EmailService } from './email.service.js';
           },
         },
         defaults: {
-          from: `"EnvMemo No Reply" <${config.get<string>('EMAIL_FROM')}>`,
+          from: `"EnvMemo" <${config.get<string>('EMAIL_FROM')}>`,
         },
       }),
     }),
