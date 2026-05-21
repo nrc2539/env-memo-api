@@ -64,9 +64,17 @@ export class EmailService {
     await this.sendMail(to, 'Reset Your Password', html);
   }
 
-  async sendSetupPasswordEmail(to: string, token: string): Promise<void> {
+  async sendSetupPasswordEmail(
+    to: string,
+    token: string,
+    projectName?: string,
+  ): Promise<void> {
     const frontendUrl = this.configService.get<string>('FRONTEND_URL')!;
     const setupLink = `${frontendUrl}/setup-password?token=${token}`;
+
+    const projectIntro = projectName
+      ? `You've been invited to join <strong>${projectName}</strong> on EnvMemo.`
+      : `You've been invited to join a project on EnvMemo.`;
 
     const html = `
       <!DOCTYPE html>
@@ -74,7 +82,7 @@ export class EmailService {
         <head><meta charset="utf-8"></head>
         <body style="font-family: Arial, sans-serif; padding: 20px;">
           <h2>Set Up Your Password</h2>
-          <p>You've been invited to join a project on EnvMemo. Click the link below to set your password and get started:</p>
+          <p>${projectIntro} Click the link below to set your password and get started:</p>
           <p><a href="${setupLink}" style="display: inline-block; padding: 10px 20px; background: #2563eb; color: #fff; text-decoration: none; border-radius: 6px;">Set Up Password</a></p>
           <p>Or copy this URL into your browser:</p>
           <p>${setupLink}</p>

@@ -293,9 +293,15 @@ export class ProjectService {
       data: { token: setupPasswordToken },
     });
 
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      select: { name: true },
+    });
+
     await this.emailService.sendSetupPasswordEmail(
       invitation.email,
       setupPasswordToken,
+      project?.name,
     );
 
     return { message: 'Invitation re-sent successfully' };
@@ -334,9 +340,15 @@ export class ProjectService {
       },
     });
 
+    const project = await this.prisma.project.findUnique({
+      where: { id: data.projectId },
+      select: { name: true },
+    });
+
     await this.emailService.sendSetupPasswordEmail(
       data.email,
       setupPasswordToken,
+      project?.name,
     );
   }
 
