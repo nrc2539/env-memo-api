@@ -85,4 +85,23 @@ export class EmailService {
 
     await this.sendMail(to, 'Set Up Your Password', html);
   }
+
+  async sendWelcomeEmail(to: string, name?: string): Promise<void> {
+    const greeting = name ? `Hi ${name},` : 'Hi there,';
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head><meta charset="utf-8"></head>
+        <body style="font-family: Arial, sans-serif; padding: 20px;">
+          <h2>Welcome to EnvMemo!</h2>
+          <p>${greeting}</p>
+          <p>Your account has been created successfully. You can now log in and start managing your environment variables.</p>
+          <p>Welcome aboard!</p>
+        </body>
+      </html>
+    `;
+
+    await this.sendMail(to, 'Welcome to EnvMemo!', html);
+  }
 }

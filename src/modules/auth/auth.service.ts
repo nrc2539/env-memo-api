@@ -50,6 +50,8 @@ export class AuthService {
       },
     });
 
+    await this.emailService.sendWelcomeEmail(dto.email, dto.name);
+
     return { message: 'User registered successfully' };
   }
 
@@ -195,6 +197,8 @@ export class AuthService {
         ),
       ]);
     }
+
+    await this.emailService.sendWelcomeEmail(user.email, dto.name);
 
     return { message: 'Password set successfully' };
   }
